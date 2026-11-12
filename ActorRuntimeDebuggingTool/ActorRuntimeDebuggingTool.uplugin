@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "ActorRuntimeDebuggingTool",
+	"Description": "Plugin for an actor runtime debugging tool",
+	"Category": "Other",
+	"CreatedBy": "Heem Patel",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "ActorRuntimeDebuggingTool",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
