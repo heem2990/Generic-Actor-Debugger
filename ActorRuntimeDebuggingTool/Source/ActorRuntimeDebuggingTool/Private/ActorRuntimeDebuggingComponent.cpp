@@ -261,9 +261,6 @@ void UActorRuntimeDebuggingComponent::DrawDebugger(FGameplayDebuggerCanvasContex
 
 void UActorRuntimeDebuggingComponent::WrapTextByWords(const FString& Text, int32 MaxCharsPerLine, FString& OutLineWithLineBreaksAdded)
 {
-	TArray<FString> Words;
-	TArray<FString> WrappedLines;
-
 	if (Text.Len() <= MaxCharsPerLine || LineWarpHandling == ERuntimeDebuggerLineWarpHandling::NoWarping)
 	{
 		OutLineWithLineBreaksAdded = Text;
@@ -271,6 +268,7 @@ void UActorRuntimeDebuggingComponent::WrapTextByWords(const FString& Text, int32
 	}
 
 	// Split the text by spaces
+	TArray<FString> Words;
 	Text.ParseIntoArray(Words, TEXT(" "), true);
 	if (Words.Num() == 0)
 	{
@@ -279,6 +277,8 @@ void UActorRuntimeDebuggingComponent::WrapTextByWords(const FString& Text, int32
 	}
 
 	FString CurrentLine = Words[0];
+	TArray<FString> WrappedLines;
+
 	for (int32 i = 1; i < Words.Num(); ++i)
 	{
 		// Check if adding the next word exceeds the limit
