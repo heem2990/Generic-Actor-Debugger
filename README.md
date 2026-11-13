@@ -233,7 +233,8 @@ If line wrapping is disabled the debugger will adjust its width to that of the w
 2. Then we accumulate words until the character limit is hit, and then we start a new string.
 3. We then finally join all the combined strings with either a newline, or a newline and an indent in between them..
 
-This is handled in `UActorRuntimeDebuggingComponent::WrapTextByWords`.
+This is handled in `UActorRuntimeDebuggingComponent::WrapTextByWords`. 
+> **Note:** This fails if a string that is one really long word is passed in
 
 <img width="975" height="787" alt="WrapTextByWords implementation" src="https://github.com/user-attachments/assets/41070212-b584-4384-b8cb-fc8291d9fb5c" />
 
