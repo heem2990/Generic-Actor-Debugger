@@ -1,6 +1,6 @@
 # Actor Runtime Debugging Tool
 
-A runtime debugger for Unreal Engine that draws debug strings on top of any actor. It is highly customizable for any actor type, you can add the strings that matter and see them hovering over that actor.
+A runtime debugger for Unreal Engine that draws debug strings on top of any actor. It is highly customizable for any actor type, you can add the strings that matter and see them hovering over that actor. It also provides the option to forward the strings to visual logger, which provides a scrubbable history of any important debug state you might want to track on different actors/characters. 
 
 <img width="1081" height="581" alt="Actor Runtime Debugger overview" src="https://github.com/user-attachments/assets/bd9f21bc-94b7-446f-8270-68f42a7c6f98" />
 
@@ -25,9 +25,9 @@ A runtime debugger for Unreal Engine that draws debug strings on top of any acto
 Unreal already ships with several excellent debuggers, such as the Gameplay Debugger, Visual Logger and Rewind Debugger. They are all incredibly helpful in different and appropriate situations, however they each have limitations:
 
 - `Gameplay Debugger` can only be brought up on one actor at a time.
-- Adding information to the `Gameplay Debugger` requires creating a new debugger, which is a lot of setup when all you might want is to see some live data on the actor.
+- Adding information to the `Gameplay Debugger` may require creating a new debugger if it doesnt exist, which is a lot of setup when all you might want is to see some live data on the actor. And is also not the most design friendly setup.
 - For `Rewind Debugger, and Visual Logger`, you need to be recording, and you need to have the correct debug actor selected, although they are scrubbable, which is a huge plus. 
-- `GEngine->AddOnScreenDebugMessage` works well, but draws in screen space so it quickly become overwhelming. Additionally, because its on screen space, its not easy to know what data might be associated with what actor.
+- `GEngine->AddOnScreenDebugMessage` works well, but draws in screen space so it can quickly become overwhelming if theres multiple pieces of data and multiple actors. Additionally, because its on screen space, its not easy to know what data might be associated with what actor.
 
 
 > **Note:** This tutorial is divided into two parts.
@@ -44,12 +44,15 @@ The debugger has two parts:
 
 | Part | Role |
 | --- | --- |
-| **Debugger Component** (`ActorRuntimeDebuggingComponent`) | This is the componenet that should be added to the actor you want to draw this debugger on. Can be added natively, or in Blueprint class. Its basically responsible for collecting and drawing all the data. It also has settings that let you manipulate the appearance of the debugger, and some of the behavior like how often it collects data etc.|
-| **Debugger Interface** (`ActorRuntimeDebuggerInterface`) | This is the interface that should be added, natively/blueprint class, to the actor that you want to draw the debugger on. It provides the function that can be overriden to populate the debug string. Additionally, override the getter so tthat the external systems can interface with the component if required. |
+| **Debugger Component** (`ActorRuntimeDebuggingComponent`) | This is the componenet that should be added to the actor you want to draw this debugger on. It can be added natively, or in a Blueprint class. It is basically responsible for collecting and drawing all the debugger and the data. It also has settings that lets you manipulate the appearance of the debugger, and some of the behavior like how often it collects data etc.|
+| **Debugger Interface** (`ActorRuntimeDebuggerInterface`) | This is the interface that should be added, either natively on in blueprint class, to the actor that you want to draw the debugger on. It provides the function that can be overriden to populate the debug string. Additionally also provides an overrideable getter so that the external systems can interface with the component as required. |
 
 ## Setup
+### 1. Setting up the Plugin
 
-### 1. Add the component
+Add this plugin under your `...Projects/Plugin` folder. You'll want to reference this plugin in the build.cs file of your project, typically under `.../Source/Project/` and will be named as Project.build.cs. In that add `ActorRuntimeDebuggingTool` in the PublicDependencyModuleNames array. This will allow you to reference this plugin in your project.  
+
+### 2. Add the component
 
 Add `ActorRuntimeDebuggingComponent` to the actor you want to debug, either in Blueprint or natively.
 
@@ -65,13 +68,13 @@ You can quickly test at this point: enable **BeginEnabled** on the component, th
 
 > *Example of the component and interface added to an actor in C++*
 
-### 2. Implement the interface
+### 3. Implement the interface
 
 The actor needs to implement `ActorRuntimeDebuggerInterface`, either in Blueprint (via **Class Settings**) or natively. The interface exposes functions to get the debugger component and to implement `CollectData`, which lets you add whatever debug strings you want.
 
 > **Tip:** You can colorize strings with `{color}` tags. Everything after a color tag will be drawn in that color. Available colors are listed in `ColorList.h` (around 100 of them).
 
-### 3. Override `CollectData`
+### 4. Override `CollectData`
 
 Once the interface is implemented, override `CollectData` (or `CollectData_Implementation` in C++) on the actor to add strings that you want to show on the debugger at runtime. This `CollectData` function will get called either every tick, or on timer depending on the settings in the component.
 
