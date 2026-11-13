@@ -1,6 +1,6 @@
 # Actor Runtime Debugging Tool
 
-A runtime debugger for Unreal Engine that draws debug strings on top of any actor. It is highly customizable for any actor type, you can add the strings that matter and see them hovering over that actor. It also provides the option to forward the strings to visual logger, which provides a scrubbable history of any important debug state you might want to track on different actors/characters. 
+A runtime debugger tool for UE5 that draws debug information strings for any actor, at an offset from it. It is highly customizable for any actor type, you can add the strings that are relevant for debugging, and can see them on the debugger over that actor. It also provides an option to forward the strings to visual logger, which provides a scrubbable history of any important debug state you might want to track on different actors/characters. 
 
 <img width="1081" height="581" alt="Actor Runtime Debugger overview" src="https://github.com/user-attachments/assets/bd9f21bc-94b7-446f-8270-68f42a7c6f98" />
 
@@ -14,7 +14,7 @@ A runtime debugger for Unreal Engine that draws debug strings on top of any acto
   - [Setup](#setup)
   - [Adding Dynamic Strings](#adding-dynamic-strings)
   - [Toggling Visibility of the debugger](#toggling-visibility-of-the-debugger)
-  - [Options available for the debugger (Cosmetic, and behavioral)](#options-available-for-the-debugger)
+  - [Options available for the debugger](#options-available-for-the-debugger)
 - [Part 2: How to build a debugger like this](#part-2-how-to-build-a-debugger-like-this)
   - [Collecting Data](#collecting-data)
   - [Drawing Data](#drawing-data)
@@ -22,16 +22,16 @@ A runtime debugger for Unreal Engine that draws debug strings on top of any acto
 
 ## Why?
 
-Unreal already ships with several excellent debuggers, such as the Gameplay Debugger, Visual Logger and Rewind Debugger. They are all incredibly helpful in different and appropriate situations, however they each have limitations:
+UE5 already ships with several excellent debuggers like the Gameplay Debugger, Visual Logger and Rewind Debugger. They are all incredibly helpful in appropriate situations, however they each have limitations:
 
-- `Gameplay Debugger` can only be brought up on one actor at a time.
-- Adding information to the `Gameplay Debugger` may require creating a new debugger if it doesnt exist, which is a lot of setup when all you might want is to see some live data on the actor. And is also not the most design friendly setup.
+- `Gameplay Debugger` can only be enabled on one actor at a time.
+- Adding information to the `Gameplay Debugger` may require creating a new debugger, if it doesnt exist, which can be a lot of setup, when all you might want is to see some live data on the actor. And it is also not the most design friendly setup.
 - For `Rewind Debugger, and Visual Logger`, you need to be recording, and you need to have the correct debug actor selected, although they are scrubbable, which is a huge plus. 
 - `GEngine->AddOnScreenDebugMessage` works well, but draws in screen space so it can quickly become overwhelming if theres multiple pieces of data and multiple actors. Additionally, because its on screen space, its not easy to know what data might be associated with what actor.
 
 
 > **Note:** This tutorial is divided into two parts.
-> **Part 1** shows how to take this debugger as-is, adapt it to your project, and extend it.
+> **Part 1** shows how to take this debugger and adapt it to your project, and what considerations to keep in mind when adapting to your project. 
 > **Part 2** walks through the process of making a debugger like this.
 
 ---
@@ -40,12 +40,10 @@ Unreal already ships with several excellent debuggers, such as the Gameplay Debu
 
 ## Overview
 
-The debugger has two parts:
-
 | Part | Role |
 | --- | --- |
-| **Debugger Component** (`ActorRuntimeDebuggingComponent`) | This is the componenet that should be added to the actor you want to draw this debugger on. It can be added natively, or in a Blueprint class. It is basically responsible for collecting and drawing all the debugger and the data. It also has settings that lets you manipulate the appearance of the debugger, and some of the behavior like how often it collects data etc.|
-| **Debugger Interface** (`ActorRuntimeDebuggerInterface`) | This is the interface that should be added, either natively on in blueprint class, to the actor that you want to draw the debugger on. It provides the function that can be overriden to populate the debug string. Additionally also provides an overrideable getter so that the external systems can interface with the component as required. |
+| **Debugger Component** (`ActorRuntimeDebuggingComponent`) | This is the component that should be added to the actor you want to draw this debugger on. It can be added natively, or in a Blueprint class. It is basically responsible for collecting and drawing all the the data, and the debugger. It also has settings that lets you manipulate the appearance of the debugger, and some of the behavior such as how often it collects data.|
+| **Debugger Interface** (`ActorRuntimeDebuggerInterface`) | This is the interface that should be added, either natively on in blueprint class, to the actor that you want to draw the debugger on. It provides the function `CollectData` that can be overriden to populate the debug string. Additionally it also provides an overrideable getter so that external systems can interface with the component as required. |
 
 ## Setup
 ### 1. Setting up the Plugin
@@ -54,9 +52,9 @@ Add this plugin under your `...Projects/Plugin` folder. You'll want to reference
 
 ### 2. Add the component
 
-Add `ActorRuntimeDebuggingComponent` to the actor you want to debug, either in Blueprint or natively.
+Add `ActorRuntimeDebuggingComponent` to the actor you want to debug, this can be either in Blueprint or in a native C++ class.
 
-You can quickly test at this point: enable **BeginEnabled** on the component, then start PIE. The actor should draw a debugger.
+You can quickly test at this point: enable **BeginEnabled** on the component, then start PIE. The actor should draw a debugger that shows the name of the actor, and its location.
 
 > NOTE: If nothing appears, make sure the CVar `ActorDebugger.Enable` is enabled. It is the main gate that enables or disables this debugger.
 
@@ -78,7 +76,7 @@ The actor needs to implement `ActorRuntimeDebuggerInterface`, either in Blueprin
 
 Once the interface is implemented, override `CollectData` (or `CollectData_Implementation` in C++) on the actor to add strings that you want to show on the debugger at runtime. This `CollectData` function will get called either every tick, or on timer depending on the settings in the component.
 
-> **Note:** When implementing `CollectData` in Blueprint, make sure to call the **Parent** `CollectData`. That way, if the function is also implemented natively, both the native and Blueprint versions will get called.
+> **Note:** When implementing `CollectData` in Blueprint, make sure to call the **Parent** `CollectData`. That way, if the function is also implemented natively, both the native and the blueprint versions will get called.
 
 <img width="975" height="506" alt="Adding a debug string in Blueprint" src="https://github.com/user-attachments/assets/b8a0afde-b464-4c08-bb06-c1d083682ad8" />
 
@@ -92,7 +90,7 @@ Once the interface is implemented, override `CollectData` (or `CollectData_Imple
 
 ### From external systems
 
-To add debug strings from an external trigger (E.g. an actor moving in or out of the range of an interactable), use the **`CollectData Delegate`** exposed by the component. It is called whenever the component is collecting data, it provides the component as a parameter, and you can add strings to the component directly via calling `**AddToCollectedStrings**` function on the component.
+To add debug strings from an external trigger (E.g. an actor moving in or out of the range of an interactable), use the **`CollectData Delegate`** exposed by the component. It is called whenever the component is collecting data, it provides the component as a parameter, and you can add strings to the component directly via calling `AddToCollectedStrings` function on the component.
 
 <img width="975" height="492" alt="Trigger volume adding a dynamic string" src="https://github.com/user-attachments/assets/892b7d77-38c3-410f-b82f-0251d9e3b8d3" />
 
@@ -100,7 +98,7 @@ To add debug strings from an external trigger (E.g. an actor moving in or out of
 
 ### For debug strings you might want on ALL actors
 
-To print information for **all** actors that use this component, I recommend add that directly in the `ActorRuntimeDebuggingComponent` component's own `CollectData` function.
+To print information for **all** actors that use this component, I recommend adding that directly in the `ActorRuntimeDebuggingComponent` component's own `CollectData` function. 
 
 <img width="975" height="567" alt="Adding strings in the component's CollectData" src="https://github.com/user-attachments/assets/94823526-7ea6-45e8-94b4-045ae864f090" />
 
@@ -124,11 +122,11 @@ You can control how and when the debugger is drawn. This is especially handy whe
 | Option | Description |
 | --- | --- |
 | **CollectDataFrequencyType** | Whether the component should collect data on Timer or on Tick. |
-| **CollectDataFrequencySeconds** | If on Timer, how frequently to collect data (in seconds). |
+| **CollectDataFrequencySeconds** | If collecting data on Timer, how frequently to collect data (in seconds). |
 | **HalfVerticalPadding** | Padding around the text at the top/bottom of the debugger. |
 | **HalfHorizontalPadding** | Padding aruond the text at the left/right of the debugger |
 | **BorderThickness** | Thickness of the border (`0.0` is no border). |
-| **LineWrapHandling** | How the debugger handles long strings (see below). |
+| **LineWrapHandling** | How the debugger handles long strings (see below). `NoWrapping`, `WrapWithLineBreaksOnly`, `WrapWithLineBreaksAndIndent`|
 | **MaxWidth** | Maximum width of the debugger (relevant when wrapping lines). |
 | **MaxCharactersAllowedPerLine** | Characters allowed before wrapping (relevant when wrapping lines). |
 | **BackplateColor** | Color of the debugger's backplate (supports translucency). |
@@ -230,8 +228,8 @@ The `FGameplayDebuggerCanvasContext` is then used to draw the debugger:
 
 If line wrapping is disabled the debugger will adjust its width to that of the widest string. However, if line wrapping is enabled, we will handle that when processing the strings to figure out their width and height. Its roughly done in the following steps - 
 
-1. Split the string using space as a delimiter. This means each word will its own string. This is to prevent a line break in the middle of a word.
-2. Then we accumulate words until we hit the character limit is hit and then we start a new string.
+1. Split the string using space as a delimiter. This means each word will be its own string in the array. This helps in preventing a line break from occuring in the middle of a word.
+2. Then we accumulate words until the character limit is hit, and then we start a new string.
 3. We then finally join all the combined strings with either a newline, or a newline and an indent in between them..
 
 This is handled in `UActorRuntimeDebuggingComponent::WrapTextByWords`.
