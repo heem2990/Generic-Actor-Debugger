@@ -237,3 +237,5 @@ This is handled in `UActorRuntimeDebuggingComponent::WrapTextByWords`.
 <img width="975" height="787" alt="WrapTextByWords implementation" src="https://github.com/user-attachments/assets/41070212-b584-4384-b8cb-fc8291d9fb5c" />
 
 > *Handling line wrapping*
+
+Questions/Comments? Feel free to drop a line at heemgamedev@gmail.com
