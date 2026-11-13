@@ -19,6 +19,7 @@ A runtime debugger tool for UE5 that draws debug information strings for any act
   - [Collecting Data](#collecting-data)
   - [Drawing Data](#drawing-data)
   - [Handling Line Wrapping](#handling-line-wrapping)
+- [Contact](#contact)
 
 ## Why?
 
@@ -238,4 +239,5 @@ This is handled in `UActorRuntimeDebuggingComponent::WrapTextByWords`.
 
 > *Handling line wrapping*
 
+## Contact
 Questions/Comments? Feel free to drop a line at heemgamedev@gmail.com
